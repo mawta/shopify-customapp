@@ -92,7 +92,8 @@ class AppController extends Controller
 //$scopes = array('read_products','write_products','read_script_tags', 'write_script_tags');
         $redirectUrl = url("/authorize");
 
-        \PHPShopify\AuthHelper::createAuthRequest($scopes, $redirectUrl);
+        $log = \PHPShopify\AuthHelper::createAuthRequest($scopes, $redirectUrl,null,null, true);
+        dd($log);
     }
 
     public function addApp(Request $request)
