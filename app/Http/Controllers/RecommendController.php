@@ -84,7 +84,7 @@ Query;
                         $productsAll1 = $data['data']['products']['edges'];
                         $productsAll = array_merge($productsAll, $productsAll1);
 
-                        $hasNext = (boolean)$data['data']['products']['hasNextPage'];
+                        $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
                         if ($hasNext){
                             $cursorQery = end($productsAll)['cursor'];
                         }else{
@@ -144,7 +144,7 @@ Query;
                         $productsAll1 = $data['data']['products']['edges'];
                         $productsAll = array_merge($productsAll, $productsAll1);
 
-                        $hasNext = (boolean)$data['data']['products']['hasNextPage'];
+                        $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
                         if ($hasNext){
                             $cursorQery = end($productsAll)['cursor'];
                         }else{
@@ -261,6 +261,10 @@ Query;
         } catch (\Exception $e) {
             logger($e->getMessage());
             logger($e->getTraceAsString());
+            return response()->json([
+                'message' => $e->getMessage(),
+                'getTraceAsString' => $e->getTraceAsString(),
+            ]);
         }
     }
 }
