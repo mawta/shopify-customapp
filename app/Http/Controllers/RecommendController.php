@@ -92,7 +92,9 @@ Query;
                         }
                     } while ($cursorQery);
 
-                    $products = $productsAll;
+                     foreach ($productsAll as $pr){
+                         array_push($products,$pr['node']);
+                     }
                     break;
                 case "collection":
                     if ($productRuleCollectionId == 'all') {
@@ -133,6 +135,7 @@ query {
       cursor
       node {
         id
+        handle
         tags
       }
     }
@@ -157,8 +160,11 @@ Query;
 
                     $collects = [];
                     foreach ($productsRecommend as $pr) {
+                        $ids = explode('/',$pr['node']['id']);
+
+                        $id = end($ids);
                         array_push($collects, (object)[
-                            "product_id" => end(explode('/',$pr['id']))
+                            "product_id" => $id
                         ]);
                     }
                     $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
@@ -223,7 +229,10 @@ Query;
                     foreach ($productsRecommend as $pr) {
                         $val .= $pr["handle"] . ",";
                     }
-                    $product["id"] = end(explode('/',$product["id"]));
+                    $ids = explode('/',$product["id"]);
+
+                    $id = end($ids);
+                    $product["id"] = end($id);
 
                     $metafields = $shopify->Product($product["id"])->Metafield->get([
                         "namespace" => "ca_mawta",
