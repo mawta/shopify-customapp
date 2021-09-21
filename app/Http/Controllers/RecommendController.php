@@ -73,6 +73,7 @@ query {
       node {
         id
         tags
+        handle
       }
     }
   }
@@ -153,6 +154,24 @@ Query;
 
 
                     $productsRecommend = $productsAll;
+
+                    $collects = [];
+                    foreach ($productsRecommend as $pr) {
+                        array_push($collects, (object)[
+                            "product_id" => end(explode('/',$pr['id']))
+                        ]);
+                    }
+                    $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
+                    $params = array(
+                        "title" => "Macbooks",
+                        "published" => false,
+                        "collects" => $collects,
+                        "sort_order" => $sort
+                    );
+                    $collectionRecommend = $shopify->CustomCollection->post($params);
+                    $productsRecommend = $shopify->Collection($collectionRecommend['id'])->Product->get(['limit' => $limit]);
+
+                    $collectionRecommend = $shopify->CustomCollection($collectionRecommend['id'])->delete();
                     break;
                 case "collection":
                     $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
@@ -204,6 +223,7 @@ Query;
                     foreach ($productsRecommend as $pr) {
                         $val .= $pr["handle"] . ",";
                     }
+                    $product["id"] = end(explode('/',$product["id"]));
 
                     $metafields = $shopify->Product($product["id"])->Metafield->get([
                         "namespace" => "ca_mawta",
