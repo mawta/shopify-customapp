@@ -51,24 +51,47 @@ class RecommendController extends Controller
 
             $products = [];
             $productsRecommend = [];
+            $cursor = "";
+            $cursorQery = false;
 
             switch ($productRuleType) {
                 case "tag":
                     $productsAll = [];
                     do {
-                        $productsAll1 = $shopify->Product()->get(['limit' => 250]);
-                        $productsAll = array_merge($productsAll, $productsAll1);
-                    } while (count($productsAll1) == 250);
-
-                    $tags = explode(',', $tagValue);
-                    foreach ($productsAll as $product) {
-                        $tagsPr = explode(', ', $product->tags);
-                        $match = array_intersect($tags, $tagsPr);
-
-                        if ($match && is_countable($match) && count($match) > 0) {
-                            array_push($products, $product);
+                        if ($cursorQery){
+                            $cursor = ', after: "'.$cursorQery.'"' ;
                         }
-                    }
+
+                        $graphQL = <<<Query
+query {
+  products(first:100, query:"tag:$tagValue" $cursor) {
+    pageInfo {
+      hasNextPage
+    }
+    edges {
+      cursor
+      node {
+        id
+        tags
+      }
+    }
+  }
+}
+Query;
+
+                        $data = $shopify->GraphQL->post($graphQL);
+                        $productsAll1 = $data['data']['products']['edges'];
+                        $productsAll = array_merge($productsAll, $productsAll1);
+
+                        $hasNext = (boolean)$data['data']['products']['hasNextPage'];
+                        if ($hasNext){
+                            $cursorQery = end($productsAll)['cursor'];
+                        }else{
+                            $cursorQery = false;
+                        }
+                    } while ($cursorQery);
+
+                    $products = $productsAll;
                     break;
                 case "collection":
                     if ($productRuleCollectionId == 'all') {
@@ -91,20 +114,45 @@ class RecommendController extends Controller
 
             switch ($productRecommendRuleType) {
                 case "tag":
+                    $cursor = "";
+                    $cursorQery = false;
                     $productsAll = [];
                     do {
-                        $productsAll1 = $shopify->Product()->get(['limit' => 250]);
-                        $productsAll = array_merge($productsAll, $productsAll1);
-                    } while (count($productsAll1) == 250);
-                    $tags = explode(',', $tagValueRecommend);
-                    foreach ($productsAll as $product) {
-                        $tagsPr = explode(', ', $product->tags);
-                        $match = array_intersect($tags, $tagsPr);
-
-                        if ($match && is_countable($match) && count($match) > 0) {
-                            array_push($productsRecommend, $product);
+                        if ($cursorQery){
+                            $cursor = ', after: "'.$cursorQery.'"' ;
                         }
-                    }
+
+                        $graphQL = <<<Query
+query {
+  products(first:100, query:"tag:$tagValueRecommend" $cursor) {
+    pageInfo {
+      hasNextPage
+    }
+    edges {
+      cursor
+      node {
+        id
+        tags
+      }
+    }
+  }
+}
+Query;
+
+                        $data = $shopify->GraphQL->post($graphQL);
+                        $productsAll1 = $data['data']['products']['edges'];
+                        $productsAll = array_merge($productsAll, $productsAll1);
+
+                        $hasNext = (boolean)$data['data']['products']['hasNextPage'];
+                        if ($hasNext){
+                            $cursorQery = end($productsAll)['cursor'];
+                        }else{
+                            $cursorQery = false;
+                        }
+                    } while ($cursorQery);
+
+
+                    $productsRecommend = $productsAll;
                     break;
                 case "collection":
                     $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
