@@ -7,9 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Custom App</title>
-    <link rel="icon" href="{!! asset('images/favico.png') !!}"/>
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/app.css?ver='.$app["ver"]) }}">
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/app-v1.css?ver='.$app["ver"]) }}">
+    <link rel="icon" href="{!! url('images/favico.png') !!}"/>
+    <link rel="stylesheet" type="text/css" href="{{ url('css/app.css?ver='.$app["ver"]) }}">
+    <link rel="stylesheet" type="text/css" href="{{ url('css/app-v1.css?ver='.$app["ver"]) }}">
     <script type="text/javascript">
         var app = @json($app);
         app["css"] ={
