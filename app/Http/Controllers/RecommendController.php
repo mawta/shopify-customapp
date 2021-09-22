@@ -232,7 +232,7 @@ Query;
                     $ids = explode('/',$product["id"]);
 
                     $id = end($ids);
-                    $product["id"] = end($id);
+                    $product["id"] = $id;
 
                     $metafields = $shopify->Product($product["id"])->Metafield->get([
                         "namespace" => "ca_mawta",

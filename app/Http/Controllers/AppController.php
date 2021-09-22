@@ -8,7 +8,8 @@ use Illuminate\Http\Request;
 
 class AppController extends Controller
 {
-    public function test(Request $request){
+    public function test(Request $request)
+    {
         $user = auth()->user();
         $shop = $user->shop;
         $accessToken = $user->token;
@@ -19,13 +20,26 @@ class AppController extends Controller
 
         $shopify = new \PHPShopify\ShopifySDK($config);
 
-        $product = $shopify->Collection(262215991386)->Product->get(['limit' => 250]);
-        $product = $shopify->Collection(262215958618)->Product->get(['limit' => 250]);
-        dd($product);
+        $param = [
+            "title" => "abcd123",
+            "usage_limit" => 591997,
+            "target_type" => "line_item",
+            "value" => "-20.0",
+            "entitled_product_ids" => [
+                921728736
+            ],
+            "prerequisite_product_ids" => [
+                921728736
+            ],
+            "target_selection"=> "entitled",
+        ];
+        $rule = $shopify->PriceRule->post($param);
+        dd($rule);
         return 1;
     }
 
-    public function index(){
+    public function index()
+    {
         $user = auth()->user();
         $ver = filemtime(public_path("/js/index.js"));
         $app = [
@@ -42,10 +56,10 @@ class AppController extends Controller
 
         $domain = $request->get("shop");
 
-        $user = User::where("shop",$domain)->first();
+        $user = User::where("shop", $domain)->first();
 
 
-        if(!$user){
+        if (!$user) {
             $user = User::create([
                 'shop' => $domain,
             ]);
@@ -60,7 +74,7 @@ class AppController extends Controller
         $accessToken = \PHPShopify\AuthHelper::getAccessToken();
 
         $user->update([
-           'token' =>  $accessToken
+            'token' => $accessToken
         ]);
 
         auth()->login($user);
@@ -87,12 +101,12 @@ class AppController extends Controller
 
         \PHPShopify\ShopifySDK::config($config);
 
-        $scopes = 'read_products,write_products,read_script_tags,write_script_tags';
+        $scopes = 'read_discounts,write_discounts,read_products,write_products,read_script_tags,write_script_tags,read_price_rules,write_price_rules';
 //This is also valid
 //$scopes = array('read_products','write_products','read_script_tags', 'write_script_tags');
         $redirectUrl = url("/authorize");
 
-        $log = \PHPShopify\AuthHelper::createAuthRequest($scopes, $redirectUrl,null,null, true);
+        $log = \PHPShopify\AuthHelper::createAuthRequest($scopes, $redirectUrl, null, null, true);
         return redirect($log);
     }
 
