@@ -38,8 +38,15 @@ class RecommendController extends Controller
         $shopify = $this->shopify();
         $products = [];
 
+        $sinceId = null;
         do {
-            $products1 = $shopify->Product->get(['limit' => 250]);
+            if ($sinceId){
+                $products1 = $shopify->Product->get(['limit' => 250,"since_id" => $sinceId]);
+
+            }else{
+                $products1 = $shopify->Product->get(['limit' => 250]);
+            }
+            $sinceId = count($products1) > 1 ?end($products1['id']): null;
             $products = array_merge($products, $products1);
         } while (count($products1) == 250);
 
@@ -125,9 +132,16 @@ Query;
                      }
                     break;
                 case "collection":
+                    $sinceId = null;
                     if ($productRuleCollectionId == 'all') {
                         do {
-                            $products1 = $shopify->Product->get(['limit' => 250]);
+                            if ($sinceId){
+                                $products1 = $shopify->Product->get(['limit' => 250, 'since_id' => $sinceId]);
+
+                            }else{
+                                $products1 = $shopify->Product->get(['limit' => 250]);
+                            }
+                            $sinceId = count($products1) > 0 ?end($products1['id']): null;
                             $products = array_merge($products, $products1);
                         } while (count($products1) == 250);
                     } else {
@@ -219,18 +233,30 @@ Query;
 
                     break;
                 case "collection":
+                    $sinceId = null;
                     $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
 //                    $sort = $productRuleRecommend == 1 ? "created" : "created-desc";
                     $productsRecommend = [];
 
                     if ($productRuleCollectionIdRecommend == 'all') {
                         do {
-                            $productsRecommend1 = $shopify->Product->get(['limit' => 250,]);
+                            if ($sinceId){
+                                $productsRecommend1 = $shopify->Product->get(['limit' => 250,]);
+                            }else{
+                                $productsRecommend1 = $shopify->Product->get(['limit' => 250,'since_id' => $sinceId]);
+                            }
+
+                            $sinceId =  count($productsRecommend1) > 0 ?end($productsRecommend1['id']): null;
                             $productsRecommend = array_merge($productsRecommend, $productsRecommend1);
                         } while (count($productsRecommend1) == 250);
                     } else {
                         do {
-                            $productsRecommend1 = $shopify->Collection($productRuleCollectionIdRecommend)->Product->get(['limit' => 250]);
+                            if ($sinceId) {
+                                $productsRecommend1 = $shopify->Collection($productRuleCollectionIdRecommend)->Product->get(['limit' => 250,'since_id' => $sinceId]);
+                            }else{
+                                $productsRecommend1 = $shopify->Collection($productRuleCollectionIdRecommend)->Product->get(['limit' => 250]);
+                            }
+                            $sinceId =  count($productsRecommend1) > 0 ? end($productsRecommend1['id']): null;
                             $productsRecommend = array_merge($productsRecommend, $productsRecommend1);
                         } while (count($productsRecommend1) == 250);
                     }
