@@ -16,12 +16,15 @@ import {
     Col,
     Button,
     List,
+    Table,
+    Tag,
 } from "antd";
 import {
     UserOutlined,
     SolutionOutlined,
     LoadingOutlined,
     SmileOutlined,
+    CheckCircleOutlined,
 } from "@ant-design/icons";
 import { ConfigProvider } from "antd";
 import frFR from "antd/lib/locale/fr_FR";
@@ -61,6 +64,17 @@ export class Home extends Component {
                 });
             },
         });
+
+        this.props.fetchData({
+            url: "api/get-history",
+            callback: (response) => {
+                this.setState({
+                    recommends: response.data.recommends,
+                });
+
+                console.log(recommends);
+            },
+        });
     }
 
     UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
@@ -96,6 +110,7 @@ export class Home extends Component {
             loading,
             listProductRecommend,
             productRuleId,
+            recommends,
         } = this.state;
 
         const steps = [
@@ -109,6 +124,141 @@ export class Home extends Component {
             },
         ];
 
+        const columns = [
+            {
+                title: "Auto",
+                key: "auto",
+                render: (record) =>
+                    record.active_auto ? (
+                        <Tag icon={<CheckCircleOutlined />} color="success">
+                            Activated
+                        </Tag>
+                    ) : record.product_rule_id != "0" ||
+                      record.product_recommend_rule_type == "product" ? (
+                        ""
+                    ) : (
+                        <Button
+                            type="primary"
+                            style={{
+                                width: "60%",
+                            }}
+                            onClick={(e) => {
+                                this.props.postData({
+                                    url: "api/active-auto",
+                                    data: {
+                                        id: record.id,
+                                    },
+                                    callback: (r) => {
+                                        if (r.data) {
+                                            openNotification(
+                                                "info",
+                                                "Activated successfull!"
+                                            );
+
+                                            let i = recommends.indexOf(record);
+
+                                            recommends[i].active_auto = 1;
+                                            this.setState({
+                                                recommends,
+                                            });
+                                        }
+                                    },
+                                });
+                            }}
+                        >
+                            Activate
+                        </Button>
+                    ),
+            },
+            {
+                title: "Product",
+                key: "pr",
+                render: (record) => (
+                    <div>
+                        {record.product_rule_type && (
+                            <p>
+                                <b>Type:</b> {record.product_rule_type}
+                            </p>
+                        )}
+                        {record.product_rule_id != "0" && (
+                            <p>
+                                <b>Product id:</b> {record.product_rule_id}
+                            </p>
+                        )}
+                        {record.product_rule_collection_id != "0" && (
+                            <p>
+                                <b>Collection id:</b>{" "}
+                                {record.product_rule_collection_id}
+                            </p>
+                        )}
+                        {record.tag_value != "" && record.tag_value != null && (
+                            <p>
+                                <b>Tags:</b> {record.tag_value}
+                            </p>
+                        )}
+                    </div>
+                ),
+            },
+            {
+                title: "Product Recommend",
+                key: "prr",
+                render: (record) => (
+                    <div>
+                        {record.product_recommend_rule_type && (
+                            <p>
+                                <b>Type:</b>{" "}
+                                {record.product_recommend_rule_type}
+                            </p>
+                        )}
+                        {record.product_rule_collection_id_recommend != "0" &&
+                            record.product_recommend_rule_type ==
+                                "collection" && (
+                                <p>
+                                    <b>Collection id:</b>{" "}
+                                    {
+                                        record.product_rule_collection_id_recommend
+                                    }
+                                </p>
+                            )}
+                        {record.tag_value_recommend != "" &&
+                            record.tag_value_recommend != null && (
+                                <p>
+                                    <b>Tags:</b> {record.tag_value_recommend}
+                                </p>
+                            )}
+                    </div>
+                ),
+            },
+            {
+                title: "Rule",
+                key: "rr",
+                render: (record) => (
+                    <div>
+                        {record.product_rule_recommend && (
+                            <p>
+                                <b>Rule:</b>{" "}
+                                {record.product_rule_recommend == 1
+                                    ? "Best selling"
+                                    : "Newest"}
+                            </p>
+                        )}
+                        {record.limit && (
+                            <p>
+                                <b>Limit:</b> {record.limit}
+                            </p>
+                        )}
+                    </div>
+                ),
+            },
+            {
+                title: "Date",
+                key: "dt",
+                render: (record) => {
+                    var date = new Date(record.updated_at);
+                    return date.toDateString();
+                },
+            },
+        ];
         return (
             <PageLayout keyMenu={["product-recomend"]}>
                 <ConfigProvider locale={frFR}>
@@ -506,6 +656,17 @@ export class Home extends Component {
                                 >
                                     SAVE
                                 </Button>
+                            </div>
+                        </TabPane>
+
+                        <TabPane tab="History">
+                            <div>
+                                {recommends && (
+                                    <Table
+                                        columns={columns}
+                                        dataSource={recommends}
+                                    />
+                                )}
                             </div>
                         </TabPane>
                     </Tabs>

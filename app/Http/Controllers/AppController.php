@@ -2,15 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Recommend;
 use App\Models\User;
 use App\Traits\CheckTraits;
 use Illuminate\Http\Request;
 
 class AppController extends Controller
 {
+    public $shopifyAPI;
+
     public function test(Request $request)
     {
         $user = auth()->user();
+        $r  = Recommend::where('user_id',$user->id )->get();
+        dd($r);
+        return;
+        $user = auth()->user();
+        dd($user);
         $shop = $user->shop;
         $accessToken = $user->token;
         $config = array(
@@ -19,7 +27,6 @@ class AppController extends Controller
         );
 
         $shopify = new \PHPShopify\ShopifySDK($config);
-
         $param = [
             "title" => "abcd123",
             "usage_limit" => 591997,

@@ -29,6 +29,7 @@ Route::middleware(['web'])->group(function() {
 Route::middleware(['web','auth-shop'])->prefix('api')->group(function() {
     Route::get('/get-collections', [RecommendController::class, 'getCollections']);
     Route::get('/get-products', [RecommendController::class, 'getProducts']);
+    Route::get('/get-history', [RecommendController::class, 'getHistory']);
 
 
 
@@ -36,6 +37,7 @@ Route::middleware(['web','auth-shop'])->prefix('api')->group(function() {
 
 
     Route::post('/save-product-recommend', [RecommendController::class, 'saveProductRecommend']);
+    Route::post('/active-auto', [RecommendController::class, 'activeAuto']);
 });
 
 Route::middleware(['web','auth-shop'])->group(function() {

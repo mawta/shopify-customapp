@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Recommend;
 use App\Traits\CheckTraits;
 use Illuminate\Http\Request;
 
@@ -22,16 +23,40 @@ class RecommendController extends Controller
         ]);
     }
 
+    public function getHistory(Request $request)
+    {
+        $user = auth()->user();
+
+        $r  = Recommend::where('user_id',$user->id )->orderBy('updated_at','DESC')->get();
+        return response()->json([
+            "recommends" => $r
+        ]);
+    }
+
     public function getProducts(Request $request)
     {
         $shopify = $this->shopify();
-        $products = $shopify->Product->get(['limit' => 250]);
+        $products = [];
+
+        do {
+            $products1 = $shopify->Product->get(['limit' => 250]);
+            $products = array_merge($products, $products1);
+        } while (count($products1) == 250);
 
         return response()->json([
             "products" => $products
         ]);
     }
 
+    public function activeAuto(Request $request){
+        $id = $request->post('id');
+
+        $r = Recommend::find($id);
+
+        $r->update([
+            'active_auto' => 1
+        ]);
+    }
 
     public function saveProductRecommend(Request $request)
     {
@@ -57,14 +82,16 @@ class RecommendController extends Controller
             switch ($productRuleType) {
                 case "tag":
                     $productsAll = [];
-                    do {
-                        if ($cursorQery){
-                            $cursor = ', after: "'.$cursorQery.'"' ;
-                        }
+                    $tags = explode(',',$tagValue);
+                    foreach ($tags as $tg){
+                        do {
+                            if ($cursorQery){
+                                $cursor = ', after: "'.$cursorQery.'"' ;
+                            }
 
-                        $graphQL = <<<Query
+                            $graphQL = <<<Query
 query {
-  products(first:100, query:"tag:$tagValue" $cursor) {
+  products(first:100, query:"tag:$tg" $cursor) {
     pageInfo {
       hasNextPage
     }
@@ -80,17 +107,18 @@ query {
 }
 Query;
 
-                        $data = $shopify->GraphQL->post($graphQL);
-                        $productsAll1 = $data['data']['products']['edges'];
-                        $productsAll = array_merge($productsAll, $productsAll1);
+                            $data = $shopify->GraphQL->post($graphQL);
+                            $productsAll1 = $data['data']['products']['edges'];
+                            $productsAll = array_merge($productsAll, $productsAll1);
 
-                        $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
-                        if ($hasNext){
-                            $cursorQery = end($productsAll)['cursor'];
-                        }else{
-                            $cursorQery = false;
-                        }
-                    } while ($cursorQery);
+                            $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
+                            if ($hasNext){
+                                $cursorQery = end($productsAll)['cursor'];
+                            }else{
+                                $cursorQery = false;
+                            }
+                        } while ($cursorQery);
+                    }
 
                      foreach ($productsAll as $pr){
                          array_push($products,$pr['node']);
@@ -117,17 +145,21 @@ Query;
 
             switch ($productRecommendRuleType) {
                 case "tag":
+                    $tags = explode(',',$tagValueRecommend);
+                    $count = is_array($tags) ? count($tags) : 1;
+                    $limitRe = round($limit / $count);
                     $cursor = "";
                     $cursorQery = false;
-                    $productsAll = [];
-                    do {
-                        if ($cursorQery){
-                            $cursor = ', after: "'.$cursorQery.'"' ;
-                        }
+                   foreach ($tags as $tg){
+                       $productsAll = [];
+                       do {
+                           if ($cursorQery){
+                               $cursor = ', after: "'.$cursorQery.'"' ;
+                           }
 
-                        $graphQL = <<<Query
+                           $graphQL = <<<Query
 query {
-  products(first:100, query:"tag:$tagValueRecommend" $cursor) {
+  products(first:100, query:"tag:$tg" $cursor) {
     pageInfo {
       hasNextPage
     }
@@ -143,41 +175,48 @@ query {
 }
 Query;
 
-                        $data = $shopify->GraphQL->post($graphQL);
-                        $productsAll1 = $data['data']['products']['edges'];
-                        $productsAll = array_merge($productsAll, $productsAll1);
+                           $data = $shopify->GraphQL->post($graphQL);
+                           $productsAll1 = $data['data']['products']['edges'];
+                           $productsAll = array_merge($productsAll, $productsAll1);
 
-                        $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
-                        if ($hasNext){
-                            $cursorQery = end($productsAll)['cursor'];
-                        }else{
-                            $cursorQery = false;
-                        }
-                    } while ($cursorQery);
+                           $hasNext = (boolean)$data['data']['products']['pageInfo']['hasNextPage'];
+                           if ($hasNext){
+                               $cursorQery = end($productsAll)['cursor'];
+                           }else{
+                               $cursorQery = false;
+                           }
+                       } while ($cursorQery);
+
+                       $productsRecommends = $productsAll;
+
+                       $collects = [];
+                       foreach ($productsRecommends as $pr) {
+                           $ids = explode('/',$pr['node']['id']);
+
+                           $id = end($ids);
+                           array_push($collects, (object)[
+                               "product_id" => $id
+                           ]);
+                       }
+                       $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
+                       $params = array(
+                           "title" => "Macbooks",
+                           "published" => false,
+                           "collects" => $collects,
+                           "sort_order" => $sort
+                       );
+                       $collectionRecommend = $shopify->CustomCollection->post($params);
+                       $productsRecommends = $shopify->Collection($collectionRecommend['id'])->Product->get(['limit' => $limitRe]);
+
+                       $collectionRecommend = $shopify->CustomCollection($collectionRecommend['id'])->delete();
+
+                       $productsRecommend = array_merge($productsRecommend,$productsRecommends);
+
+                   }
 
 
-                    $productsRecommend = $productsAll;
 
-                    $collects = [];
-                    foreach ($productsRecommend as $pr) {
-                        $ids = explode('/',$pr['node']['id']);
 
-                        $id = end($ids);
-                        array_push($collects, (object)[
-                            "product_id" => $id
-                        ]);
-                    }
-                    $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
-                    $params = array(
-                        "title" => "Macbooks",
-                        "published" => false,
-                        "collects" => $collects,
-                        "sort_order" => $sort
-                    );
-                    $collectionRecommend = $shopify->CustomCollection->post($params);
-                    $productsRecommend = $shopify->Collection($collectionRecommend['id'])->Product->get(['limit' => $limit]);
-
-                    $collectionRecommend = $shopify->CustomCollection($collectionRecommend['id'])->delete();
                     break;
                 case "collection":
                     $sort = $productRuleRecommend == 1 ? "best-selling" : "created-desc";
@@ -262,6 +301,19 @@ Query;
                     logger($e->getTraceAsString());
                 }
             }
+
+            Recommend::create([
+                'user_id' => auth()->user()->id,
+                'product_rule_type' => $productRuleType,
+                'product_recommend_rule_type' => $productRecommendRuleType,
+                'tag_value' => $tagValue,
+                'product_rule_collection_id' => $productRuleCollectionId,
+                'limit' => $limit,
+                'tag_value_recommend' => $tagValueRecommend,
+                'product_rule_recommend' => $productRuleRecommend,
+                'product_rule_id' => $productRuleId,
+                'product_rule_collection_id_recommend' => $productRuleCollectionIdRecommend,
+            ]);
 
             return response()->json([
                 'status' => "success",
