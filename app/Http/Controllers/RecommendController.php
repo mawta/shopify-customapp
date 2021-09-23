@@ -171,11 +171,11 @@ Query;
                     $tags = explode(',',$tagValueRecommend);
                     $count = is_array($tags) ? count($tags) : 1;
                     $limitRe = round($limit / $count);
-                    $cursor = "";
                     $cursorQery = false;
                    foreach ($tags as $tg){
                        $productsAll = [];
                        $productsRecommends = [];
+                       $cursor = "";
                        do {
                            if ($cursorQery){
                                $cursor = ', after: "'.$cursorQery.'"' ;
