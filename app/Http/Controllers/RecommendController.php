@@ -175,6 +175,7 @@ Query;
                     $cursorQery = false;
                    foreach ($tags as $tg){
                        $productsAll = [];
+                       $productsRecommends = [];
                        do {
                            if ($cursorQery){
                                $cursor = ', after: "'.$cursorQery.'"' ;
