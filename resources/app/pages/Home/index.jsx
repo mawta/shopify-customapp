@@ -70,9 +70,8 @@ export class Home extends Component {
             callback: (response) => {
                 this.setState({
                     recommends: response.data.recommends,
+                    autoupdates: response.data.autoupdates,
                 });
-
-                console.log(recommends);
             },
         });
     }
@@ -81,8 +80,6 @@ export class Home extends Component {
         let data = nextProps.data;
         let postResponse = nextProps.postResponse;
 
-        console.log(data);
-        console.log(postResponse);
     }
 
     onChangeRadio = (e) => {
@@ -111,6 +108,7 @@ export class Home extends Component {
             listProductRecommend,
             productRuleId,
             recommends,
+            autoupdates,
         } = this.state;
 
         const steps = [
@@ -128,21 +126,19 @@ export class Home extends Component {
             {
                 title: "Auto",
                 key: "auto",
-                render: (record) =>
-                    record.active_auto ? (
-                        <Tag icon={<CheckCircleOutlined />} color="success">
-                            Activated
-                        </Tag>
-                    ) : record.product_rule_id != "0" ||
-                      record.product_recommend_rule_type == "product" ? (
-                        ""
-                    ) : (
-                        <Button
+                render: (record) => {
+                    if (record.product_rule_id != "0" ||
+                        record.product_recommend_rule_type == "product") return "";
+                    return <Button
+                            loading={this.state['loadingActive'+record.id]}
                             type="primary"
                             style={{
                                 width: "60%",
                             }}
                             onClick={(e) => {
+                                var obj = {}
+                                obj['loadingActive'+record.id] = 1
+                                this.setState(obj);
                                 this.props.postData({
                                     url: "api/active-auto",
                                     data: {
@@ -155,12 +151,28 @@ export class Home extends Component {
                                                 "Activated successfull!"
                                             );
 
-                                            let i = recommends.indexOf(record);
+                                            var recommends1  = recommends
+                                            var autoupdates1  = autoupdates
+                                            var rc = record;
+                                            rc.active_auto = 1
+                                            autoupdates1.unshift(rc)
 
-                                            recommends[i].active_auto = 1;
-                                            this.setState({
-                                                recommends,
-                                            });
+                                            this.setState({ autoupdates: [] }, () => {
+                                                this.setState({ autoupdates: autoupdates1 })
+                                            })
+                                            
+
+                                            recommends1 = recommends1.filter(
+                                                (i) => i.id != record.id
+                                            );
+                                            
+                                           
+                                            var obj = {
+                                                recommends:  recommends1,
+                                                
+                                            }
+                                            obj['loadingActive'+record.id] = 0
+                                            this.setState(obj);
                                         }
                                     },
                                 });
@@ -168,7 +180,8 @@ export class Home extends Component {
                         >
                             Activate
                         </Button>
-                    ),
+                },
+                    
             },
             {
                 title: "Product",
@@ -253,6 +266,156 @@ export class Home extends Component {
             {
                 title: "Date",
                 key: "dt",
+                render: (record) => {
+                    var date = new Date(record.updated_at);
+                    return date.toDateString();
+                },
+            },
+        ];
+        const columns1 = [
+            {
+                title: "Auto",
+                key: "auto1",
+                render: (record) => {
+                   return record && record.active_auto && (
+                        <Button
+                            loading={this.state['loadingActive'+record.id]}
+                            type="primary"
+                            style={{
+                                width: "60%",
+                            }}
+                            onClick={(e) => {
+                                var obj = {}
+                                obj['loadingActive'+record.id] = 1
+                                this.setState(obj);
+                                this.props.postData({
+                                    url: "api/active-auto",
+                                    data: {
+                                        id: record.id,
+                                        deactivate: 1,
+                                    },
+                                    callback: (r) => {
+                                        if (r.data) {
+                                            openNotification(
+                                                "info",
+                                                "Deactivated successfull!"
+                                            );
+                                            var recommends1  = recommends
+                                            var autoupdates1  = autoupdates
+                                            var rc = record;
+                                            rc.active_auto = 0
+                                            recommends1.unshift(rc);
+
+                                            this.setState({
+                                                recommends: [],
+                                            }, () => {
+                                                this.setState({
+                                                    recommends: recommends1,
+                                                })
+                                            })
+
+
+                                            autoupdates1 = autoupdates1.filter(
+                                                (i) => i.id != record.id
+                                            );
+                                            var obj = {
+                                                autoupdates: autoupdates1,
+                                            }
+                                            obj['loadingActive'+record.id] = 0
+                                            this.setState(obj);
+                                        }
+                                    },
+                                });
+                            }}
+                        >
+                            Delete
+                        </Button>
+                    )
+                },
+            },
+            {
+                title: "Product",
+                key: "pr1",
+                render: (record) => (
+                    <div>
+                        {record.product_rule_type && (
+                            <p>
+                                <b>Type:</b> {record.product_rule_type}
+                            </p>
+                        )}
+                        {record.product_rule_id != "0" && (
+                            <p>
+                                <b>Product id:</b> {record.product_rule_id}
+                            </p>
+                        )}
+                        {record.product_rule_collection_id != "0" && (
+                            <p>
+                                <b>Collection id:</b>{" "}
+                                {record.product_rule_collection_id}
+                            </p>
+                        )}
+                        {record.tag_value != "" && record.tag_value != null && (
+                            <p>
+                                <b>Tags:</b> {record.tag_value}
+                            </p>
+                        )}
+                    </div>
+                ),
+            },
+            {
+                title: "Product Recommend",
+                key: "prr1",
+                render: (record) => (
+                    <div>
+                        {record.product_recommend_rule_type && (
+                            <p>
+                                <b>Type:</b>{" "}
+                                {record.product_recommend_rule_type}
+                            </p>
+                        )}
+                        {record.product_rule_collection_id_recommend != "0" &&
+                            record.product_recommend_rule_type ==
+                                "collection" && (
+                                <p>
+                                    <b>Collection id:</b>{" "}
+                                    {
+                                        record.product_rule_collection_id_recommend
+                                    }
+                                </p>
+                            )}
+                        {record.tag_value_recommend != "" &&
+                            record.tag_value_recommend != null && (
+                                <p>
+                                    <b>Tags:</b> {record.tag_value_recommend}
+                                </p>
+                            )}
+                    </div>
+                ),
+            },
+            {
+                title: "Rule",
+                key: "rr1",
+                render: (record) => (
+                    <div>
+                        {record.product_rule_recommend && (
+                            <p>
+                                <b>Rule:</b>{" "}
+                                {record.product_rule_recommend == 1
+                                    ? "Best selling"
+                                    : "Newest"}
+                            </p>
+                        )}
+                        {record.limit && (
+                            <p>
+                                <b>Limit:</b> {record.limit}
+                            </p>
+                        )}
+                    </div>
+                ),
+            },
+            {
+                title: "Date",
+                key: "dt1",
                 render: (record) => {
                     var date = new Date(record.updated_at);
                     return date.toDateString();
@@ -647,14 +810,23 @@ export class Home extends Component {
                         </div>
                     </TabPane>
 
-                    <TabPane tab="History">
+                    <TabPane tab="History" key="2">
                         <div>
-                            {recommends && (
                                 <Table
+                                    key="tb1"
                                     columns={columns}
                                     dataSource={recommends}
                                 />
-                            )}
+                        </div>
+                    </TabPane>
+
+                    <TabPane tab="Auto Update" key="3">
+                        <div>
+                                <Table
+                                    key="tb2"
+                                    columns={columns1}
+                                    dataSource={autoupdates}
+                                />
                         </div>
                     </TabPane>
                 </Tabs>
