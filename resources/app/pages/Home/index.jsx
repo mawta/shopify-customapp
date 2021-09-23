@@ -39,7 +39,7 @@ export class Home extends Component {
             current: 1,
             radioValue: "tag",
             radioValue2: "tag",
-            limit: 8,
+            limit: 4,
             productRuleRecommend: 1,
             productRuleCollectionId: "all",
             productRuleCollectionIdRecommend: "all",
