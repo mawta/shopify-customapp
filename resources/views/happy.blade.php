@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Happy 20/10</title>
-    <link rel="icon" href="{!! url('images/favico.png') !!}"/>
+    <link rel="icon" href="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/apple/285/clown-face_1f921.png"/>
     <style>
         html, body {
             height: 100%;
