@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Recommend;
 use App\Models\User;
 use App\Traits\CheckTraits;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class AppController extends Controller
@@ -38,11 +39,24 @@ class AppController extends Controller
             "prerequisite_product_ids" => [
                 921728736
             ],
+            "once_per_customer"=> true,
             "target_selection"=> "entitled",
+            "starts_at"=>Carbon::now(),
         ];
         $rule = $shopify->PriceRule->post($param);
         dd($rule);
         return 1;
+    }
+
+    public function happy($name)
+    {
+        return view('happy', compact('name'));
+    }
+
+    public function happyT(Request $request)
+    {
+        $name = "thanh";
+        return view('happy', compact('name'));
     }
 
     public function index()

@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import * as PropTypes from "prop-types";
 import { PageLayout } from "../../components";
-import FacebookLogin from "react-facebook-login";
 import { openNotification, api } from "../../helper";
 import {
     Tabs,
@@ -79,7 +78,6 @@ export class Home extends Component {
     UNSAFE_componentWillReceiveProps(nextProps, nextContext) {
         let data = nextProps.data;
         let postResponse = nextProps.postResponse;
-
     }
 
     onChangeRadio = (e) => {
@@ -127,17 +125,21 @@ export class Home extends Component {
                 title: "Auto",
                 key: "auto",
                 render: (record) => {
-                    if (record.product_rule_id != "0" ||
-                        record.product_recommend_rule_type == "product") return "";
-                    return <Button
-                            loading={this.state['loadingActive'+record.id]}
+                    if (
+                        record.product_rule_id != "0" ||
+                        record.product_recommend_rule_type == "product"
+                    )
+                        return "";
+                    return (
+                        <Button
+                            loading={this.state["loadingActive" + record.id]}
                             type="primary"
                             style={{
                                 width: "60%",
                             }}
                             onClick={(e) => {
-                                var obj = {}
-                                obj['loadingActive'+record.id] = 1
+                                var obj = {};
+                                obj["loadingActive" + record.id] = 1;
                                 this.setState(obj);
                                 this.props.postData({
                                     url: "api/active-auto",
@@ -151,27 +153,32 @@ export class Home extends Component {
                                                 "Activated successfull!"
                                             );
 
-                                            var recommends1  = recommends
-                                            var autoupdates1  = autoupdates
+                                            var recommends1 = recommends;
+                                            var autoupdates1 = autoupdates;
                                             var rc = record;
-                                            rc.active_auto = 1
-                                            autoupdates1.unshift(rc)
+                                            rc.active_auto = 1;
+                                            autoupdates1.unshift(rc);
 
-                                            this.setState({ autoupdates: [] }, () => {
-                                                this.setState({ autoupdates: autoupdates1 })
-                                            })
-                                            
+                                            this.setState(
+                                                { autoupdates: [] },
+                                                () => {
+                                                    this.setState({
+                                                        autoupdates:
+                                                            autoupdates1,
+                                                    });
+                                                }
+                                            );
 
                                             recommends1 = recommends1.filter(
                                                 (i) => i.id != record.id
                                             );
-                                            
-                                           
+
                                             var obj = {
-                                                recommends:  recommends1,
-                                                
-                                            }
-                                            obj['loadingActive'+record.id] = 0
+                                                recommends: recommends1,
+                                            };
+                                            obj[
+                                                "loadingActive" + record.id
+                                            ] = 0;
                                             this.setState(obj);
                                         }
                                     },
@@ -180,8 +187,8 @@ export class Home extends Component {
                         >
                             Activate
                         </Button>
+                    );
                 },
-                    
             },
             {
                 title: "Product",
@@ -277,60 +284,71 @@ export class Home extends Component {
                 title: "Auto",
                 key: "auto1",
                 render: (record) => {
-                   return record && record.active_auto && (
-                        <Button
-                            loading={this.state['loadingActive'+record.id]}
-                            type="primary"
-                            style={{
-                                width: "60%",
-                            }}
-                            onClick={(e) => {
-                                var obj = {}
-                                obj['loadingActive'+record.id] = 1
-                                this.setState(obj);
-                                this.props.postData({
-                                    url: "api/active-auto",
-                                    data: {
-                                        id: record.id,
-                                        deactivate: 1,
-                                    },
-                                    callback: (r) => {
-                                        if (r.data) {
-                                            openNotification(
-                                                "info",
-                                                "Deactivated successfull!"
-                                            );
-                                            var recommends1  = recommends
-                                            var autoupdates1  = autoupdates
-                                            var rc = record;
-                                            rc.active_auto = 0
-                                            recommends1.unshift(rc);
+                    return (
+                        record &&
+                        record.active_auto && (
+                            <Button
+                                loading={
+                                    this.state["loadingActive" + record.id]
+                                }
+                                type="primary"
+                                style={{
+                                    width: "60%",
+                                }}
+                                onClick={(e) => {
+                                    var obj = {};
+                                    obj["loadingActive" + record.id] = 1;
+                                    this.setState(obj);
+                                    this.props.postData({
+                                        url: "api/active-auto",
+                                        data: {
+                                            id: record.id,
+                                            deactivate: 1,
+                                        },
+                                        callback: (r) => {
+                                            if (r.data) {
+                                                openNotification(
+                                                    "info",
+                                                    "Deactivated successfull!"
+                                                );
+                                                var recommends1 = recommends;
+                                                var autoupdates1 = autoupdates;
+                                                var rc = record;
+                                                rc.active_auto = 0;
+                                                recommends1.unshift(rc);
 
-                                            this.setState({
-                                                recommends: [],
-                                            }, () => {
-                                                this.setState({
-                                                    recommends: recommends1,
-                                                })
-                                            })
+                                                this.setState(
+                                                    {
+                                                        recommends: [],
+                                                    },
+                                                    () => {
+                                                        this.setState({
+                                                            recommends:
+                                                                recommends1,
+                                                        });
+                                                    }
+                                                );
 
-
-                                            autoupdates1 = autoupdates1.filter(
-                                                (i) => i.id != record.id
-                                            );
-                                            var obj = {
-                                                autoupdates: autoupdates1,
+                                                autoupdates1 =
+                                                    autoupdates1.filter(
+                                                        (i) => i.id != record.id
+                                                    );
+                                                var obj = {
+                                                    autoupdates: autoupdates1,
+                                                };
+                                                obj[
+                                                    "loadingActive" + record.id
+                                                ] = 0;
+                                                this.setState(obj);
                                             }
-                                            obj['loadingActive'+record.id] = 0
-                                            this.setState(obj);
-                                        }
-                                    },
-                                });
-                            }}
-                        >
-                            Delete
-                        </Button>
-                    )
+                                        },
+                                    });
+                                }}
+                            >
+                                Delete
+                            </Button>
+                        )
+                    );
                 },
             },
             {
@@ -534,7 +552,7 @@ export class Home extends Component {
                                                         <Select.Option
                                                             value={c.id}
                                                         >
-                                                            {c.title} -
+                                                            {c.title} |
                                                             {" " + c.handle}
                                                         </Select.Option>
                                                     ))}
@@ -708,7 +726,7 @@ export class Home extends Component {
                                                         <Select.Option
                                                             value={key}
                                                         >
-                                                            {c.title} -
+                                                            {c.title} |
                                                             {" " + c.handle}
                                                         </Select.Option>
                                                     ))}
@@ -762,7 +780,7 @@ export class Home extends Component {
                                                         ]}
                                                     >
                                                         <div>
-                                                            {item.title}+
+                                                            {item.title} |
                                                             {" " + item.handle}
                                                         </div>
                                                     </List.Item>
@@ -812,21 +830,21 @@ export class Home extends Component {
 
                     <TabPane tab="History" key="2">
                         <div>
-                                <Table
-                                    key="tb1"
-                                    columns={columns}
-                                    dataSource={recommends}
-                                />
+                            <Table
+                                key="tb1"
+                                columns={columns}
+                                dataSource={recommends}
+                            />
                         </div>
                     </TabPane>
 
                     <TabPane tab="Auto Update" key="3">
                         <div>
-                                <Table
-                                    key="tb2"
-                                    columns={columns1}
-                                    dataSource={autoupdates}
-                                />
+                            <Table
+                                key="tb2"
+                                columns={columns1}
+                                dataSource={autoupdates}
+                            />
                         </div>
                     </TabPane>
                 </Tabs>

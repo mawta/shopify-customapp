@@ -80,6 +80,9 @@ class PageLayout extends React.Component {
                         <Menu.Item key="product-recomend">
                             <Link to="/">Product Recomend</Link>
                         </Menu.Item>
+                        <Menu.Item key="price-rule">
+                            <Link to="/price-rule">Price Rule</Link>
+                        </Menu.Item>
                     </Menu>
                 </Header>
                 <Content style={{ padding: "0 50px" }}>

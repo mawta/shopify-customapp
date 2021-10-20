@@ -5,15 +5,14 @@ import { Route, Switch } from "react-router-dom";
 //     Home,
 // } from "../loadables";
 
-import {
-    Home,
-} from "../containers";
+import { Home, PriceRule } from "../containers";
 
 import { Docs } from "../pages";
 
 const Routes = () => (
     <Switch>
-        <Route path="/" component={Home} />
+        <Route path="/price-rule" component={PriceRule} />
+        <Route path="/" component={PriceRule} />
     </Switch>
 );
 
