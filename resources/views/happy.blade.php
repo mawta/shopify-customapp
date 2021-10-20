@@ -680,7 +680,7 @@
 </div>
 
 <div class="text">
-    <p>Chúc mừng 20/10, chúc&nbsp;<span style="text-transform: capitalize">{{$name}}</span>&nbsp;<span class="word wisteria">xinh_đẹp</span>
+    <p>Chúc mừng 20/10, chúc&nbsp;<span>{{$name}}</span>&nbsp;<span class="word wisteria">xinh_đẹp</span>
         <span class="word belize">vui_vẻ</span>
         <span class="word pomegranate">hạnh_phúc</span>
         <span class="word green">thành_công</span>
